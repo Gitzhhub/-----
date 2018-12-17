@@ -1,0 +1,52 @@
+#协程返回x*x#
+
+def producer(consumers):
+    print('producer ready')
+    try:
+        while True:
+            val = yield
+            for consumer1 in consumers:
+                consumer1.send(val*val)
+            for consumer2 in consumers:
+                consumer2.send(val*val)
+
+    except GeneratorExit:
+        for consumer in consumers:
+            consumer.close()
+
+def consumer1():
+    alist = []
+    print('1 ready')
+    try:
+        while True:
+            val = yield
+            if val >= 1:
+                alist.append(val)
+                v = min(alist)
+                print('min',v)
+    except GeneratorExit:
+        print('close')
+def consumer2():
+    alist = []
+    print('2 ready')
+    try:
+        while True:
+            val = yield
+            if val >= 1:
+                alist.append(val)
+                v = max(alist)
+                print('max',v)
+    except GeneratorExit:
+        print('close')
+
+con1=consumer1()
+con2=consumer2()
+p=producer([con1,con2])
+next(p)
+next(con1)
+next(con2)
+p.send(1)
+p.send(2)
+p.send(3)
+p.send(4)
+p.send(5)
